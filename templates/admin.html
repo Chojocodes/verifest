@@ -1,0 +1,82 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>VeriFest — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body class="wide">
+  <div class="card wide">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4v-1z" stroke="#ffb020" stroke-width="1.6"/><path d="M9 8v8" stroke="#1fc8a3" stroke-width="1.6" stroke-dasharray="2 2"/></svg>
+      <h1>Veri<span>Fest</span> Organizer Dashboard</h1>
+    </div>
+    <p class="sub">Demo only — add login before using this with real fest data.</p>
+
+    <div class="stats-grid">
+      <div class="stat"><div class="num">{{ paid_count }}</div><div class="label">Tickets sold</div></div>
+      <div class="stat"><div class="num">₹{{ revenue }}</div><div class="label">Revenue</div></div>
+      <div class="stat"><div class="num">{{ admitted }}</div><div class="label">Checked in</div></div>
+      <div class="stat"><div class="num">{{ tickets|length - paid_count }}</div><div class="label">Pending payment</div></div>
+    </div>
+
+    <div class="charts">
+      <canvas id="tierChart" height="220"></canvas>
+      <canvas id="entryChart" height="220"></canvas>
+    </div>
+
+    <h3 style="margin-top:28px">Recent gate activity</h3>
+    <table>
+      <tr><th>Ticket</th><th>Result</th><th>Detail</th><th>Time</th></tr>
+      {% for s in recent_scans %}
+      <tr>
+        <td>{{ s['ticket_id'][:8] }}…</td>
+        <td class="{{ 'tag-admit' if s['result']=='admitted' else 'tag-deny' }}">{{ s['result'] }}</td>
+        <td>{{ s['detail'] }}</td>
+        <td>{{ s['at'] }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+
+    <h3 style="margin-top:28px">All registrations</h3>
+    <table>
+      <tr><th>Name</th><th>Roll No</th><th>CGPA</th><th>Discount</th><th>Paid</th><th>Entry</th></tr>
+      {% for t in tickets %}
+      <tr>
+        <td>{{ t['name'] }}</td>
+        <td>{{ t['roll_no'] }}</td>
+        <td>{{ t['cgpa'] }}</td>
+        <td>{{ t['discount_pct'] }}%</td>
+        <td>{{ '✅' if t['paid'] else '⏳' }}</td>
+        <td>{{ '🟢' if t['used'] else '—' }}</td>
+      </tr>
+      {% endfor %}
+    </table>
+  </div>
+
+  <script>
+    new Chart(document.getElementById('tierChart'), {
+      type: 'pie',
+      data: {
+        labels: ['0% (≤8.5)', '10% (8.5–9.0)', '15% (9.0–9.5)', '20% (>9.5)'],
+        datasets: [{
+          data: [{{ tier_counts[0] }}, {{ tier_counts[10] }}, {{ tier_counts[15] }}, {{ tier_counts[20] }}],
+          backgroundColor: ['#7fa0a8', '#1fc8a3', '#ffb020', '#ff6b6b']
+        }]
+      },
+      options: { plugins: { title: { display: true, text: 'Discount tier mix', color: '#eaf3f3' }, legend: { labels: { color: '#eaf3f3' } } } }
+    });
+    new Chart(document.getElementById('entryChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Sold', 'Checked in'],
+        datasets: [{ data: [{{ paid_count }}, {{ admitted }}], backgroundColor: ['#1fc8a3', '#ffb020'] }]
+      },
+      options: {
+        plugins: { title: { display: true, text: 'Sold vs. checked in', color: '#eaf3f3' }, legend: { display: false } },
+        scales: { x: { ticks: { color: '#eaf3f3' } }, y: { ticks: { color: '#eaf3f3' } } }
+      }
+    });
+  </script>
+</body>
+</html>

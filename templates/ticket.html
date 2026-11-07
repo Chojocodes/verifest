@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>VeriFest — Your Ticket</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4v-1z" stroke="#ffb020" stroke-width="1.6"/><path d="M9 8v8" stroke="#1fc8a3" stroke-width="1.6" stroke-dasharray="2 2"/></svg>
+      <h1>Veri<span>Fest</span></h1>
+    </div>
+    <div class="row"><span>Name</span><span>{{ t['name'] }}</span></div>
+    <div class="row"><span>Roll No</span><span>{{ t['roll_no'] }}</span></div>
+    <div class="row"><span>Paid</span><span>₹{{ t['final_price'] }} ({{ t['discount_pct'] }}% off)</span></div>
+    <div class="row"><span>Payment Ref</span><span>{{ t['payment_ref'] }}</span></div>
+
+    <img id="qr" class="qr" src="{{ url_for('ticket_qr', ticket_id=t['ticket_id']) }}" width="220" height="220">
+    <div class="countdown">Refreshes in <b id="count">{{ window_seconds }}</b>s — this QR is only valid for this window</div>
+    <p class="sub" style="text-align:center">Show this at the gate. It rotates like an OTP, so a screenshot stops working within seconds — only the live screen works.</p>
+  </div>
+
+  <script>
+    const WINDOW = {{ window_seconds }};
+    let left = WINDOW;
+    const countEl = document.getElementById('count');
+    const img = document.getElementById('qr');
+    setInterval(() => {
+      left -= 1;
+      if (left <= 0) {
+        left = WINDOW;
+        img.src = "{{ url_for('ticket_qr', ticket_id=t['ticket_id']) }}?t=" + Date.now();
+      }
+      countEl.textContent = left;
+    }, 1000);
+  </script>
+</body>
+</html>

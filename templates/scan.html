@@ -1,0 +1,68 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>VeriFest — Gate Scanner</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4v-1z" stroke="#ffb020" stroke-width="1.6"/><path d="M9 8v8" stroke="#1fc8a3" stroke-width="1.6" stroke-dasharray="2 2"/></svg>
+      <h1>Veri<span>Fest</span> Gate</h1>
+    </div>
+    <p class="sub">Point a camera at the student's QR, or paste the payload manually below.</p>
+
+    <div id="reader" style="width:100%"></div>
+    <div id="result-box"></div>
+
+    <form id="manual-form" onsubmit="return false;">
+      <label>Manual payload (fallback)</label>
+      <input id="manual-payload" placeholder="ticketid:window:token">
+      <button type="button" onclick="submitPayload(document.getElementById('manual-payload').value)">Verify &amp; Admit</button>
+    </form>
+  </div>
+
+  <script>
+    async function submitPayload(payload) {
+      const box = document.getElementById('result-box');
+      box.innerHTML = '';
+      try {
+        const res = await fetch('/api/scan', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({payload})
+        });
+        const data = await res.json();
+        const cls = data.status === 'ok' ? 'ok' : 'error';
+        box.innerHTML = `<div class="result-box ${cls}">${data.message}</div>`;
+      } catch (e) {
+        box.innerHTML = `<div class="result-box error">Network error — check connection.</div>`;
+      }
+    }
+
+    // Live camera scanning (falls back silently if no camera/permission)
+    try {
+      const scanner = new Html5Qrcode("reader");
+      let busy = false;
+      scanner.start(
+        { facingMode: "environment" },
+        { fps: 10, qrbox: 220 },
+        (decodedText) => {
+          if (busy) return;
+          busy = true;
+          submitPayload(decodedText);
+          setTimeout(() => { busy = false; }, 2000); // debounce re-scans
+        },
+        () => {}
+      ).catch(() => {
+        document.getElementById('reader').innerHTML =
+          '<p class="sub">No camera available — use the manual field below.</p>';
+      });
+    } catch (e) {
+      document.getElementById('reader').innerHTML =
+        '<p class="sub">Camera scanning unsupported — use the manual field below.</p>';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8"><title>VeriFest — Payment</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 10a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v1a2 2 0 0 0 0 4v1a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-1a2 2 0 0 0 0-4v-1z" stroke="#ffb020" stroke-width="1.6"/><path d="M9 8v8" stroke="#1fc8a3" stroke-width="1.6" stroke-dasharray="2 2"/></svg>
+      <h1>Veri<span>Fest</span></h1>
+    </div>
+    <h1 style="font-size:1.1rem;margin-top:10px">Confirm &amp; Pay</h1>
+    <div class="row"><span>Name</span><span>{{ t['name'] }}</span></div>
+    <div class="row"><span>CGPA</span><span>{{ t['cgpa'] }}</span></div>
+    <div class="row"><span>Discount</span><span>{{ t['discount_pct'] }}%</span></div>
+    <div class="row"><span>Amount payable</span><span><b>₹{{ t['final_price'] }}</b></span></div>
+    <form method="post">
+      <button type="submit">Pay ₹{{ t['final_price'] }} (demo gateway)</button>
+    </form>
+    <p class="sub">Swap for Razorpay/Stripe checkout before go-live — see comments in app.py.</p>
+  </div>
+</body>
+</html>
